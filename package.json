@@ -4,46 +4,42 @@
   "version": "2.1.4",
   "description": "The FydeRhythm input method",
   "author": "fydeos",
-  "packageManager": "pnpm@8.3.1",
+  "packageManager": "pnpm@10.23.0",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
     "package": "plasmo package"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
-    "@monaco-editor/react": "^4.6.0",
-    "@mui/icons-material": "^5.16.7",
-    "@mui/lab": "5.0.0-alpha.125",
-    "@mui/material": "^5.16.7",
-    "@plasmohq/messaging": "^0.2.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@monaco-editor/react": "^4.7.0",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
+    "@mui/x-tree-view": "^8.19.0",
+    "@plasmohq/messaging": "^0.7.2",
     "@react-icons/all-files": "^4.1.0",
     "async-mutex": "^0.5.0",
     "events": "^3.3.0",
-    "icons-material@6.02": "link:mui/icons-material@6.02",
-    "idb": "^7.1.1",
-    "lab@6.0.0-beta.9": "link:mui/lab@6.0.0-beta.9",
+    "idb": "^8.0.3",
     "lodash": "^4.17.21",
-    "lottie-react": "^2.4.0",
-    "material@6.0.2": "link:mui/material@6.0.2",
-    "messaging@0.6.2": "link:plasmohq/messaging@0.6.2",
-    "monaco-editor": "^0.37.1",
-    "plasmo": "0.89.4",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "svgo": "^3.3.2",
-    "yaml": "^2.6.0"
+    "lottie-react": "^2.4.1",
+    "monaco-editor": "^0.55.1",
+    "plasmo": "0.90.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "svgo": "^4.0.0",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
-    "@plasmohq/prettier-plugin-sort-imports": "3.6.3",
-    "@types/chrome": "0.0.233",
-    "@types/lodash": "^4.17.13",
-    "@types/node": "18.11.18",
-    "@types/react": "18.0.27",
-    "@types/react-dom": "18.0.10",
-    "prettier": "2.8.7",
-    "typescript": "5.0.4"
+    "@plasmohq/prettier-plugin-sort-imports": "4.0.1",
+    "@types/chrome": "0.1.31",
+    "@types/lodash": "^4.17.21",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
   },
   "manifest": {
     "name": "__MSG_extension_name__",
@@ -100,7 +96,19 @@
   "pnpm": {
     "overrides": {
       "semver@>=7.0.0 <7.5.2": ">=7.5.2",
-      "@babel/traverse@<7.23.2": ">=7.23.2"
+      "@babel/traverse@<7.23.2": ">=7.23.2",
+      "svgo@2.8.0": "^4.0.0"
+    },
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "react",
+        "react-dom"
+      ],
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19",
+        "svgo": "4"
+      }
     }
   }
 }

@@ -7,8 +7,8 @@ import { AiFillFile } from '@react-icons/all-files/ai/AiFillFile'
 import { AiFillFolder } from '@react-icons/all-files/ai/AiFillFolder'
 import { AiFillHdd } from '@react-icons/all-files/ai/AiFillHdd'
 import { AiFillFileMarkdown } from '@react-icons/all-files/ai/AiFillFileMarkdown'
-import TreeView from '@mui/lab/TreeView';
-import TreeItem from '@mui/lab/TreeItem';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import type { IconType } from "@react-icons/all-files";
 import _ from "lodash";
 import React from "react";
@@ -39,15 +39,24 @@ interface FileEditorButtonProps {
     onEdit: () => void;
 }
 
+interface FileItem {
+    id: string;
+    name: string;
+    parent: string | null;
+    isDir: boolean;
+    size: number;
+}
+
 function FileEditorButton(props: FileEditorButtonProps) {
-    const [data, setData] = useState([{ name: "", id: "", parent: null, isDir: true, size: 0 }]);
+    const [data, setData] = useState<FileItem[]>([]);
     const [open, setOpen] = useState(false);
+
     useEffect(() => {
         async function load() {
             const fs = await getFs();
             const content = await fs.readAll();
 
-            const newData = [];
+            const newData: FileItem[] = [];
             for (const entry of content) {
                 newData.push({
                     id: entry.fullPath,
@@ -64,40 +73,42 @@ function FileEditorButton(props: FileEditorButtonProps) {
         }
     }, [open]);
 
-    function RenderDirectory(id: string) {
-        return data.filter(d => d.parent === id).map(function (d) {
-            const extension = d.name.slice(d.name.lastIndexOf(".") + 1);
-            let ItemIcon: IconType;
-            if (d.isDir) {
-                ItemIcon = AiFillFolder;
-            } else {
-                switch (extension.toLowerCase()) {
-                    case "txt":
-                        ItemIcon = AiFillFileText;
-                        break;
-                    case "yaml":
-                    case "yml":
-                        ItemIcon = AiFillSetting;
-                        break;
-                    case "bin":
-                    case "gram":
-                        ItemIcon = AiFillHdd;
-                        break;
-                    case "md":
-                        ItemIcon = AiFillFileMarkdown;
-                        break;
-                    default:
-                        ItemIcon = AiFillFile;
-                        break;
-                }
-            }
-            const sizeLabel = d.isDir ? "" : ` (${formatBytes(d.size)})`;
-            return <TreeItem key={d.id}
-                nodeId={d.id}
-                label={<><ItemIcon /> {d.name}{sizeLabel}</>}
-            >{RenderDirectory(d.id)}</TreeItem>
-        });
-    }
+    const getFileIcon = (item: FileItem): IconType => {
+        if (item.isDir) return AiFillFolder;
+
+        const extension = item.name.slice(item.name.lastIndexOf(".") + 1).toLowerCase();
+        switch (extension) {
+            case "txt": return AiFillFileText;
+            case "yaml":
+            case "yml": return AiFillSetting;
+            case "bin":
+            case "gram": return AiFillHdd;
+            case "md": return AiFillFileMarkdown;
+            default: return AiFillFile;
+        }
+    };
+
+    const renderTree = (parentId: string | null): React.ReactNode => {
+        return data
+            .filter(item => item.parent === parentId)
+            .map(item => {
+                const ItemIcon = getFileIcon(item);
+                const sizeLabel = item.isDir ? "" : ` (${formatBytes(item.size)})`;
+                const label = (
+                    <>
+                        <ItemIcon style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                        {item.name}{sizeLabel}
+                    </>
+                );
+
+                return (
+                    <TreeItem key={item.id} itemId={item.id} label={label}>
+                        {renderTree(item.id)}
+                    </TreeItem>
+                );
+            });
+    };
+
 
     async function saveCurrent() {
         if (currentChangeTimer) {
@@ -124,7 +135,11 @@ function FileEditorButton(props: FileEditorButtonProps) {
 
     const [filePath, setFilePath] = useState("");
     const [fileContent, setFileContent] = useState(null);
-    function onSelectFile(event: React.SyntheticEvent, path: string) {
+
+    // Find root parent - check both "" and null
+    const rootParent = data.some(d => d.parent === null) ? null : "";
+
+    function onSelectFile(event: React.SyntheticEvent, itemId: string) {
         (async () => {
 
             if (currentChangeTimer) {
@@ -132,6 +147,7 @@ function FileEditorButton(props: FileEditorButtonProps) {
                 saveCurrent();
             }
 
+            const path = itemId;
             const uneditable = ['.bin', '.gram'];
             if (uneditable.some(suffix => path.endsWith(suffix))) {
                 setFileContent(null);
@@ -184,15 +200,16 @@ function FileEditorButton(props: FileEditorButtonProps) {
             </AppBar>
             <div style={{ display: 'flex' }}>
                 <div style={{ height: "calc(100vh - 64px)", overflow: "scroll", minWidth: "250px", borderRight: "solid 1px gray" }}>
-                    <TreeView
-                        aria-label="multi-select"
-                        defaultCollapseIcon={<ExpandMore />}
-                        defaultExpandIcon={<ChevronRight />}
-                        onNodeSelect={onSelectFile}
+                    <SimpleTreeView
+                        onItemClick={onSelectFile}
                         sx={{ flexGrow: 1, overflowY: 'auto' }}
+                        slots={{
+                            collapseIcon: ExpandMore,
+                            expandIcon: ChevronRight,
+                        }}
                     >
-                        {RenderDirectory("")}
-                    </TreeView>
+                        {renderTree(rootParent)}
+                    </SimpleTreeView>
                 </div>
                 <div style={{ flexGrow: 1 }}>
                     {fileContent != null ?
