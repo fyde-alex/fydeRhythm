@@ -143,7 +143,7 @@ export class RimeEngine {
                     },
                     fsc: fs,
                     idb: { openDB, deleteDB },
-                    printErr,
+                    printErr: printErr,
                 })
                 await this.wasmObject.rimeSetup();
                 this.initialized = true;
