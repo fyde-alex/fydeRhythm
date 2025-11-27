@@ -12,8 +12,6 @@ __build_info:
 engine:
   filters:
     - uniquifier
-    - "charset_filter@gb2312"
-    - "charset_filter@gbk"
   processors:
     - ascii_composer
     - recognizer
