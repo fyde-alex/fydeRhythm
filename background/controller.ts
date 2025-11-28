@@ -225,7 +225,7 @@ export class InputController extends EventEmitter {
                 }
                 // TODO: add GUI for switch key config
                 await fs.writeWholeFile("/root/build/default.yaml", new TextEncoder().encode(stringify(
-                    { ascii_composer: { good_old_caps_lock: true, switch_key: { Caps_Lock: "clear", Shift_L: "commit_code" } } }
+                    { ascii_composer: { good_old_caps_lock: true, switch_key: { Caps_Lock: "clear", Shift_L: "commit_code", Shift_R: "commit_code" } } }
                 )));
                 console.log("new RimeEngine()");
                 const engine = new RimeEngine();
