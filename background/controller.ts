@@ -370,8 +370,6 @@ export class InputController extends EventEmitter {
                     // Virtual keyboard is not visible, candidiates are displayed in system candidate window
                     if (rimeContext.menu.candidates.length > 0) {
                         promises.push(new Promise((res, rej) => {
-                            console.log("S", this.activeSettings);
-                            console.log("V:", !this.activeSettings.horizontal);
                             chrome.input.ime.setCandidateWindowProperties({
                                 engineID: this.engineId,
                                 properties: {
@@ -393,8 +391,7 @@ export class InputController extends EventEmitter {
                                     candidates: rimeContext.menu.candidates.map((v, idx) => ({
                                         candidate: v.text,
                                         id: idx,
-                                        label: rimeContext.selectLabels[idx] || (idx + 1).toString(),
-                                        annotation: v.comment
+                                        label: rimeContext.selectLabels[idx] || (idx + 1).toString()
                                     })),
                                 }, (ok) => ok ? res(null) : rej());
                             }));
