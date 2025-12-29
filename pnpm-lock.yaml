@@ -23,13 +23,13 @@ importers:
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.55.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mui/icons-material':
-        specifier: ^7.3.5
+        specifier: ^7.3.6
         version: 7.3.6(@mui/material@7.3.6(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@types/react@19.2.7)(react@19.2.3)
       '@mui/material':
-        specifier: ^7.3.5
+        specifier: ^7.3.6
         version: 7.3.6(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mui/x-tree-view':
-        specifier: ^8.19.0
+        specifier: ^8.23.0
         version: 8.23.0(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@mui/material@7.3.6(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@7.3.6(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@react-icons/all-files':
         specifier: ^4.1.0
@@ -65,17 +65,17 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       yaml:
-        specifier: ^2.8.1
+        specifier: ^2.8.2
         version: 2.8.2
     devDependencies:
       '@types/chrome':
-        specifier: ^0.1.31
+        specifier: ^0.1.32
         version: 0.1.32
       '@types/lodash':
         specifier: ^4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: ^24.10.1
+        specifier: ^24.10.4
         version: 24.10.4
       '@types/react':
         specifier: ^19.2.7
@@ -87,16 +87,16 @@ importers:
         specifier: ^1.1.5
         version: 1.1.5(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(yaml@2.8.2))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(rollup@4.54.0)(yaml@2.8.2))
       less:
-        specifier: ^4.2.0
+        specifier: ^4.5.1
         version: 4.5.1
       prettier:
-        specifier: ^3.6.2
+        specifier: ^3.7.4
         version: 3.7.4
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
       wxt:
-        specifier: ^0.20.6
+        specifier: ^0.20.13
         version: 0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(rollup@4.54.0)(yaml@2.8.2)
 
 packages:
@@ -1538,8 +1538,8 @@ packages:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
 
-  ky@1.14.1:
-    resolution: {integrity: sha512-hYje4L9JCmpEQBtudo+v52X5X8tgWXUYyPcxKSuxQNboqufecl9VMWjGiucAFH060AwPXHZuH+WB2rrqfkmafw==}
+  ky@1.14.2:
+    resolution: {integrity: sha512-q3RBbsO5A5zrPhB6CaCS8ZUv+NWCXv6JJT4Em0i264G9W0fdPB8YRfnnEi7Dm7X7omAkBIPojzYJ2D1oHTHqug==}
     engines: {node: '>=18'}
 
   latest-version@9.0.0:
@@ -3676,7 +3676,7 @@ snapshots:
 
   kleur@3.0.3: {}
 
-  ky@1.14.1: {}
+  ky@1.14.2: {}
 
   latest-version@9.0.0:
     dependencies:
@@ -3924,7 +3924,7 @@ snapshots:
 
   package-json@10.0.1:
     dependencies:
-      ky: 1.14.1
+      ky: 1.14.2
       registry-auth-token: 5.1.0
       registry-url: 6.0.1
       semver: 7.7.3
