@@ -3,6 +3,7 @@ import { defineConfig } from 'wxt';
 // Chrome Web Store configuration - removes features not supported by Chrome Web Store
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
+  outDir: 'build',
 
   manifest: {
     name: '__MSG_extension_name__',

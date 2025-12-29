@@ -29,6 +29,7 @@ yarn-error.log*
 .env*
 
 .output/
+build/
 
 # wxt - https://wxt.dev
 .wxt
