@@ -9,7 +9,7 @@ export default defineConfig({
     name: '__MSG_extension_name__',
     description: '__MSG_description__',
     default_locale: 'zh_CN',
-    version: '2.1.5',
+    version: '3.0.0',
     author: 'fydeos',
 
     // Icons
