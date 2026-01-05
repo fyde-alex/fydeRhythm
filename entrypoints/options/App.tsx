@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import _, { set } from "lodash";
 import { parse, stringify } from 'yaml'
+import JSZip from 'jszip';
 import { ThemeProvider } from '@mui/material/styles';
 
 import theme from "./theme"
@@ -28,6 +29,7 @@ import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 import Animation from "./utils/animation";
@@ -586,6 +588,164 @@ function OptionsPage() {
         }
     }
 
+    // Helper function to map server file paths to virtual filesystem paths
+    function mapToVfsPath(serverPath: string): string {
+        // Lua files need to be in shared/lua/ for librime to find them
+        if (serverPath.startsWith('lua/')) {
+            return 'shared/' + serverPath;
+        }
+        return serverPath;
+    }
+
+    // Validate imported schema
+    async function validateImportedSchema(schemaId: string): Promise<{ schemaConfig: any }> {
+        const fs = await getFs();
+
+        // Check for required files
+        const requiredFile = `/root/build/${schemaId}.schema.yaml`;
+        const schemaYaml = await fs.readEntry(requiredFile);
+
+        if (!schemaYaml) {
+            throw new Error(`Missing required file: ${schemaId}.schema.yaml`);
+        }
+
+        // Parse and validate schema.yaml
+        const content = await fs.readWholeFile(requiredFile);
+        const textDecoder = new TextDecoder();
+        const schemaConfig = parse(textDecoder.decode(content));
+
+        if (!schemaConfig.schema || !schemaConfig.schema.schema_id) {
+            throw new Error('Invalid schema.yaml format - missing schema.schema_id');
+        }
+
+        console.log(`Schema ${schemaId} validated successfully`);
+        return { schemaConfig };
+    }
+
+    // Import compiled schema from ZIP file
+    async function importCompiledSchema(zipFile: File) {
+        setFetchListError('');
+        try {
+            setDownloadSchemaId('importing');
+            setDownloadProgress(10);
+
+            const fs = await getFs();
+            const zip = await JSZip.loadAsync(zipFile);
+
+            let schemaId = null;
+            const files: string[] = [];
+            const totalFiles = Object.keys(zip.files).length;
+            let processedFiles = 0;
+
+            // First pass: detect schema ID
+            for (const [filename, zipEntry] of Object.entries(zip.files)) {
+                if (zipEntry.dir) continue;
+
+                // Detect schema ID from .schema.yaml filename in build/ directory
+                const match = filename.match(/(?:^|\/|build\/)([^/]+)\.schema\.yaml$/);
+                if (match) {
+                    schemaId = match[1];
+                    console.log(`Detected schema ID: ${schemaId}`);
+                    break;
+                }
+            }
+
+            if (!schemaId) {
+                throw new Error('Could not detect schema ID. ZIP must contain a .schema.yaml file.');
+            }
+
+            setDownloadProgress(20);
+
+            // Second pass: extract all files
+            for (const [filename, zipEntry] of Object.entries(zip.files)) {
+                if (zipEntry.dir) continue;
+
+                const content = await zipEntry.async('uint8array');
+
+                // Determine the virtual filesystem path
+                let vfsPath: string;
+
+                // Only strip leading directory if it's a wrapper (not build/, shared/, lua/, opencc/)
+                let cleanFilename = filename;
+                const knownDirs = ['build/', 'shared/', 'lua/', 'opencc/'];
+                const startsWithKnownDir = knownDirs.some(dir => filename.startsWith(dir));
+
+                if (!startsWithKnownDir && filename.includes('/')) {
+                    const parts = filename.split('/');
+                    // Strip first directory if it's a wrapper (e.g., "schema-name/build/file.yaml" → "build/file.yaml")
+                    if (parts.length > 2 && !parts[0].includes('.')) {
+                        cleanFilename = parts.slice(1).join('/');
+                    }
+                }
+
+                // Map to virtual filesystem path
+                vfsPath = mapToVfsPath(cleanFilename);
+
+                // Write to virtual filesystem
+                await fs.writeWholeFile(`/root/${vfsPath}`, content);
+                files.push(vfsPath);
+                console.log(`Imported: ${vfsPath}`);
+
+                processedFiles++;
+                setDownloadProgress(20 + (70 * processedFiles / totalFiles));
+            }
+
+            setDownloadProgress(90);
+
+            // Create .rime.lua initialization file if Lua files were imported
+            const hasLuaFiles = files.some(f => f.startsWith('shared/lua/') && f.endsWith('.lua'));
+            if (hasLuaFiles) {
+                const rimeluaContent = `-- Auto-generated initialization file for ${schemaId}
+-- This file is required by librime's Lua plugin
+return {}
+`;
+                const encoder = new TextEncoder();
+                await fs.writeWholeFile(`/root/shared/${schemaId}.rime.lua`, encoder.encode(rimeluaContent));
+                console.log(`Created initialization file: /root/shared/${schemaId}.rime.lua`);
+            }
+
+            // Validate the imported schema and get schema info
+            const { schemaConfig } = await validateImportedSchema(schemaId);
+
+            setDownloadProgress(90);
+
+            // Add schema to self-defined schema list so it appears in UI
+            const schemaName = schemaConfig.schema?.name || '';
+            const schemaDescription = schemaConfig.schema?.description || 'Imported from ZIP';
+            await addSelfDefinedSchema(
+                schemaId,
+                schemaName,
+                schemaDescription,
+                '', // no website for imported schemas
+                schemaId // realName = schemaId for imported schemas
+            );
+
+            setDownloadProgress(95);
+
+            console.log(`Schema ${schemaId} imported successfully! Total files: ${files.length}`);
+
+            // Update local schema list
+            await loadLocalSchemaList();
+
+            // Set as active schema
+            changeSettings({ schema: schemaId });
+
+            setDownloadProgress(100);
+
+            // Show success message temporarily
+            setTimeout(() => {
+                setFetchListError('');
+            }, 3000);
+
+        } catch (ex) {
+            console.error('Import error:', ex);
+            setFetchListError($$("error_importing_schema") + ': ' + ex.toString());
+        } finally {
+            setDownloadSchemaId(null);
+            setDownloadProgress(0);
+        }
+    }
+
     const settingsDirtySnackbarActions = (
         <div style={{ padding: '8px' }}>
             <Button color="primary" variant="contained" size="small" onClick={() => loadRime()}>
@@ -644,7 +804,7 @@ function OptionsPage() {
                                         </ListItemIcon>
                                         <ListItemText
                                             primary={<>{schema.user ? schema.realName : schema.id } { schema.name }
-                                                {localSchemaList.includes(schema.id) &&
+                                                {localSchemaList.includes(schema.id) && (!schema.user || schema.website) &&
                                                     <Link component="button" underline="hover"
                                                         onClick={() =>  {
                                                             schema.user  ? convertPersonalSchema(schema.website, schema.realName, true, schema.id) : downloadSchema(schema.id, true)
@@ -705,6 +865,36 @@ function OptionsPage() {
                                         disabled={downloadSchemaId != null}>
                                         {$$("add_schema")}
                                     </Link>
+                                </ListItem>
+                                <ListItem disablePadding style={{ marginTop: "16px" }}>
+                                    <ListItemIcon>
+                                        {downloadSchemaId == 'importing' ? <CircularProgress variant="determinate" value={downloadProgress} /> : <></>}
+                                    </ListItemIcon>
+                                    <input
+                                        type="file"
+                                        accept=".zip"
+                                        id="schema-import-input"
+                                        style={{ display: 'none' }}
+                                        onChange={async (e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                await importCompiledSchema(e.target.files[0]);
+                                                // Reset the input so the same file can be selected again
+                                                e.target.value = '';
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<CloudUploadIcon />}
+                                        onClick={() => document.getElementById('schema-import-input')?.click()}
+                                        disabled={downloadSchemaId != null}
+                                        size="small"
+                                    >
+                                        {$$("import_compiled_schema")}
+                                    </Button>
+                                    <Box sx={{ fontSize: '0.85rem', color: 'text.secondary', marginLeft: '12px' }}>
+                                        {$$("import_compiled_schema_hint")}
+                                    </Box>
                                 </ListItem>
                             </List>
                         </RadioGroup>

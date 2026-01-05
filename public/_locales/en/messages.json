@@ -64,6 +64,15 @@
      "error_downloading_schema": {
         "message": "Error while downloading schema: "
      },
+     "error_importing_schema": {
+        "message": "Error while importing schema"
+     },
+     "import_compiled_schema": {
+        "message": "Import from ZIP"
+     },
+     "import_compiled_schema_hint": {
+        "message": "Import pre-compiled schema (.zip file)"
+     },
      "error_form": {
         "message": "GitHub repo URL or schema_id error"
      },

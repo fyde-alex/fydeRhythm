@@ -64,6 +64,15 @@
     "error_downloading_schema": {
         "message": "스키마 다운로드 중 오류 발생: "
     },
+    "error_importing_schema": {
+        "message": "스키마 가져오기 중 오류 발생"
+    },
+    "import_compiled_schema": {
+        "message": "ZIP에서 가져오기"
+    },
+    "import_compiled_schema_hint": {
+        "message": "컴파일된 스키마 가져오기 (.zip 파일)"
+    },
     "error_form": {
         "message": "GitHub 저장소 URL 또는 schema_id 오류"
     },

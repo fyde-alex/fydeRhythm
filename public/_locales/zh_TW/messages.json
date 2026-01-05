@@ -64,6 +64,15 @@
     "error_downloading_schema": {
         "message": "下載方案時出錯："
     },
+    "error_importing_schema": {
+        "message": "匯入方案時出錯"
+    },
+    "import_compiled_schema": {
+        "message": "從 ZIP 匯入"
+    },
+    "import_compiled_schema_hint": {
+        "message": "匯入預編譯方案（.zip 檔案）"
+    },
     "error_form": {
         "message": "GitHub 庫 URL 或 schema_id 錯誤"
     },

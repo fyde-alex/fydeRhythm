@@ -64,6 +64,15 @@
     "error_downloading_schema": {
         "message": "スキーマのダウンロード中にエラー："
     },
+    "error_importing_schema": {
+        "message": "スキーマのインポート中にエラー"
+    },
+    "import_compiled_schema": {
+        "message": "ZIP からインポート"
+    },
+    "import_compiled_schema_hint": {
+        "message": "コンパイル済みスキーマをインポート（.zip ファイル）"
+    },
     "error_form": {
         "message": "GitHub リポジトリ URL または schema_id エラー"
     },
