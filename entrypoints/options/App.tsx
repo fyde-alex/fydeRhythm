@@ -130,8 +130,11 @@ function OptionsPage() {
     async function loadLocalSchemaList(): Promise<string[]> {
         const fs = await getFs();
         const content = await fs.readAll();
-        const schemaRegex = /\/root\/[^/]+\/build\/((\w|-)+)\.schema\.yaml/g;
-        const list = content.map(c => [...c.fullPath.matchAll(schemaRegex)]).filter(c => c.length == 1).map(c => c[0][1].toString());
+        // Recognize schemas by directory name under /root/
+        const schemaDirRegex = /^\/root\/([^/]+)$/;
+        const list = content
+            .filter(c => c.isDirectory && schemaDirRegex.test(c.fullPath))
+            .map(c => c.fullPath.match(schemaDirRegex)[1]);
         setLocalSchemaList(list);
         console.log("Local schema list:", list);
         return list;
@@ -240,11 +243,27 @@ function OptionsPage() {
     }
 
     async function removeSelfDefinedSchema(id: string) {
-        const selfDefinedSchema = await getSelfDefinedSchemaList();
-        let result = selfDefinedSchema.filter( el => (el.id != id) );
-        chrome.storage.local.set({ "selfDefinedSchema": result });
-        loadSchemaList();
-        
+        try {
+            // Delete the schema directory and all its contents
+            const fs = await getFs();
+            const schemaPath = `/root/${id}`;
+            await fs.deleteDirectory(schemaPath);
+
+            // Run garbage collection to remove unused blobs
+            await fs.collectGarbage();
+
+            // Remove from self-defined schema list
+            const selfDefinedSchema = await getSelfDefinedSchemaList();
+            let result = selfDefinedSchema.filter(el => (el.id != id));
+            chrome.storage.local.set({ "selfDefinedSchema": result });
+
+            // Reload both schema list and local schema list
+            await loadLocalSchemaList();
+            await loadSchemaList();
+        } catch (ex) {
+            console.error("Error removing schema:", ex);
+            setFetchListError($$("error_removing_schema") + ex.toString());
+        }
     }
 
     async function getSelfDefinedSchemaList() {

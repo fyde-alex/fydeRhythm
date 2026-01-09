@@ -119,6 +119,18 @@ export class FastIndexedDbFsController {
         await this.db.delete("entries", path);
     }
 
+    async deleteDirectory(path: string): Promise<void> {
+        // Get all entries under this directory
+        const entries = await this.db.getAll("entries") as Entry[];
+
+        // Delete all entries that are under this path (including subdirectories)
+        for (const entry of entries) {
+            if (entry.fullPath === path || entry.fullPath.startsWith(path + '/')) {
+                await this.delPath(entry.fullPath);
+            }
+        }
+    }
+
     async setFileSize(path: string, size: number): Promise<void> {
         let curEntry = await this.readEntry(path);
         if (!curEntry) {

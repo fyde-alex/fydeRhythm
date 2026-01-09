@@ -64,6 +64,9 @@
     "error_downloading_schema": {
         "message": "스키마 다운로드 중 오류 발생: "
     },
+    "error_removing_schema": {
+        "message": "스키마 제거 중 오류 발생: "
+    },
     "error_importing_schema": {
         "message": "스키마 가져오기 중 오류 발생"
     },

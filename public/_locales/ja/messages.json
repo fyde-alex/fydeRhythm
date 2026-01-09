@@ -64,6 +64,9 @@
     "error_downloading_schema": {
         "message": "スキーマのダウンロード中にエラー："
     },
+    "error_removing_schema": {
+        "message": "スキーマの削除中にエラー："
+    },
     "error_importing_schema": {
         "message": "スキーマのインポート中にエラー"
     },

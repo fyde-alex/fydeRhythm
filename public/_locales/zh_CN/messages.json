@@ -64,6 +64,9 @@
     "error_downloading_schema": {
         "message": "下载方案时发生错误："
     },
+    "error_removing_schema": {
+        "message": "删除方案时发生错误："
+    },
     "error_importing_schema": {
         "message": "导入方案时发生错误"
     },
