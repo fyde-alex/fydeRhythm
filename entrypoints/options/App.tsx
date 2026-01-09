@@ -130,7 +130,7 @@ function OptionsPage() {
     async function loadLocalSchemaList(): Promise<string[]> {
         const fs = await getFs();
         const content = await fs.readAll();
-        const schemaRegex = /\/root\/build\/((\w|-)+)\.schema\.yaml/g;
+        const schemaRegex = /\/root\/[^/]+\/build\/((\w|-)+)\.schema\.yaml/g;
         const list = content.map(c => [...c.fullPath.matchAll(schemaRegex)]).filter(c => c.length == 1).map(c => c[0][1].toString());
         setLocalSchemaList(list);
         console.log("Local schema list:", list);
@@ -300,9 +300,10 @@ function OptionsPage() {
 
             const update = true;
             const id = data['schema_id'];
-            // [to-do] do not with merge with downloadSchema, there will be more features soon. 
+            // [to-do] do not with merge with downloadSchema, there will be more features soon.
             setDownloadProgress(10);
 
+            const schemaBasePath = `/root/${id}`;
             const kRepoUrl = kConventerUrl + "/schema/"+id;
             const schemaFile = `build/${id}.schema.yaml`;
             const schemaYaml: string = await fetch(`${kRepoUrl}/${schemaFile}`, fetchInit).then(x => x.text());
@@ -378,7 +379,7 @@ function OptionsPage() {
             const fs = await getFs();
             // Phase 1: Download small files and get size of big files
             for (const f of dependencies) {
-                if (await fs.readEntry(`/root/${f}`) && !update) {
+                if (await fs.readEntry(`${schemaBasePath}/${f}`) && !update) {
                     // file already exists
                     console.log(`${f} already exists, skipped`);
                 } else {
@@ -390,7 +391,7 @@ function OptionsPage() {
                         isNaN(size)
                     ) {
                         const buf = await res.arrayBuffer();
-                        fs.writeWholeFile(`/root/${f}`, new Uint8Array(buf));
+                        fs.writeWholeFile(`${schemaBasePath}/${f}`, new Uint8Array(buf));
                         console.log("Downloaded", f);
                     } else {
                         phase2Files.push(f);
@@ -426,12 +427,12 @@ function OptionsPage() {
                         phase2LastProgress = newProgress;
                     }
                 }
-                fs.writeWholeFile(`/root/${f}`, new Uint8Array(buf));
+                fs.writeWholeFile(`${schemaBasePath}/${f}`, new Uint8Array(buf));
                 console.log("Downloaded", f);
             }
 
             // Schema should be the last file to be written, in case an error is encountered while downloading
-            await fs.writeWholeFile(`/root/${schemaFile}`, new TextEncoder().encode(schemaYaml));
+            await fs.writeWholeFile(`${schemaBasePath}/${schemaFile}`, new TextEncoder().encode(schemaYaml));
             await addSelfDefinedSchema(id, schema.schema.name, schema.schema.description, data['repo'], postData.schema_id);
             changeSettings({ schema: id });
         } catch (ex) {
@@ -449,7 +450,8 @@ function OptionsPage() {
             const fetchInit: RequestInit = { cache: "no-cache" };
             setDownloadSchemaId(id);
             setDownloadProgress(0);
-            
+
+            const schemaBasePath = `/root/${id}`;
             const schemaFile = `build/${id}.schema.yaml`;
             const schemaYaml: string = await fetch(`${kRepoUrl}/${schemaFile}`, fetchInit).then(x => x.text());
             const schema = parse(schemaYaml);
@@ -525,7 +527,7 @@ function OptionsPage() {
             const fs = await getFs();
             // Phase 1: Download small files and get size of big files
             for (const f of dependencies) {
-                if (await fs.readEntry(`/root/${f}`) && !update) {
+                if (await fs.readEntry(`${schemaBasePath}/${f}`) && !update) {
                     // file already exists
                     console.log(`${f} already exists, skipped`);
                 } else {
@@ -537,7 +539,7 @@ function OptionsPage() {
                         isNaN(size)
                     ) {
                         const buf = await res.arrayBuffer();
-                        fs.writeWholeFile(`/root/${f}`, new Uint8Array(buf));
+                        fs.writeWholeFile(`${schemaBasePath}/${f}`, new Uint8Array(buf));
                         console.log("Downloaded", f);
                     } else {
                         phase2Files.push(f);
@@ -573,11 +575,11 @@ function OptionsPage() {
                         phase2LastProgress = newProgress;
                     }
                 }
-                fs.writeWholeFile(`/root/${f}`, new Uint8Array(buf));
+                fs.writeWholeFile(`${schemaBasePath}/${f}`, new Uint8Array(buf));
                 console.log("Downloaded", f);
             }
             // Schema should be the last file to be written, in case an error is encountered while downloading
-            await fs.writeWholeFile(`/root/${schemaFile}`, new TextEncoder().encode(schemaYaml));
+            await fs.writeWholeFile(`${schemaBasePath}/${schemaFile}`, new TextEncoder().encode(schemaYaml));
             changeSettings({ schema: id });
         } catch (ex) {
             console.log(ex);
@@ -602,7 +604,8 @@ function OptionsPage() {
         const fs = await getFs();
 
         // Check for required files
-        const requiredFile = `/root/build/${schemaId}.schema.yaml`;
+        const schemaBasePath = `/root/${schemaId}`;
+        const requiredFile = `${schemaBasePath}/build/${schemaId}.schema.yaml`;
         const schemaYaml = await fs.readEntry(requiredFile);
 
         if (!schemaYaml) {
@@ -654,6 +657,7 @@ function OptionsPage() {
                 throw new Error('Could not detect schema ID. ZIP must contain a .schema.yaml file.');
             }
 
+            const schemaBasePath = `/root/${schemaId}`;
             setDownloadProgress(20);
 
             // Second pass: extract all files
@@ -682,7 +686,7 @@ function OptionsPage() {
                 vfsPath = mapToVfsPath(cleanFilename);
 
                 // Write to virtual filesystem
-                await fs.writeWholeFile(`/root/${vfsPath}`, content);
+                await fs.writeWholeFile(`${schemaBasePath}/${vfsPath}`, content);
                 files.push(vfsPath);
                 console.log(`Imported: ${vfsPath}`);
 
@@ -700,8 +704,8 @@ function OptionsPage() {
 return {}
 `;
                 const encoder = new TextEncoder();
-                await fs.writeWholeFile(`/root/shared/${schemaId}.rime.lua`, encoder.encode(rimeluaContent));
-                console.log(`Created initialization file: /root/shared/${schemaId}.rime.lua`);
+                await fs.writeWholeFile(`${schemaBasePath}/shared/${schemaId}.rime.lua`, encoder.encode(rimeluaContent));
+                console.log(`Created initialization file: ${schemaBasePath}/shared/${schemaId}.rime.lua`);
             }
 
             // Validate the imported schema and get schema info

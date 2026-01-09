@@ -147,7 +147,8 @@ export class InputController extends EventEmitter {
 
     async loadRimeConfig(settings: ImeSettings): Promise<string> {
         const fs = await getFs();
-        const schemaConfigBuffer = await fs.readWholeFile(`/root/build/${settings.schema}.schema.yaml`);
+        const schemaBasePath = `/root/${settings.schema}`;
+        const schemaConfigBuffer = await fs.readWholeFile(`${schemaBasePath}/build/${settings.schema}.schema.yaml`);
         const schemaConfigString = new TextDecoder().decode(schemaConfigBuffer);
         const schemaConfig = parse(schemaConfigString);
         if (!schemaConfig.menu) {
@@ -211,7 +212,8 @@ export class InputController extends EventEmitter {
                 console.log("loadRimeConfig");
                 const config = await this.loadRimeConfig(this.activeSettings);
                 const fs = await getFs();
-                const dirs = ['/root/build', '/root/shared', '/root/user', '/root/shared/opencc'];
+                const schemaBasePath = `/root/${this.activeSettings.schema}`;
+                const dirs = [`${schemaBasePath}/build`, `${schemaBasePath}/shared`, `${schemaBasePath}/user`, `${schemaBasePath}/shared/opencc`];
                 for (const d of dirs) {
                     if (!await fs.readEntryRaw(d)) {
                         await fs.createDirectory(d);
@@ -219,17 +221,17 @@ export class InputController extends EventEmitter {
                 }
                 if (maintenance) {
                     if (config.includes("lua_")) {
-                        const luaContent = await fs.readWholeFile(`/root/shared/${this.activeSettings.schema}.rime.lua`);
-                        await fs.writeWholeFile("/root/user/rime.lua", luaContent);
+                        const luaContent = await fs.readWholeFile(`${schemaBasePath}/shared/${this.activeSettings.schema}.rime.lua`);
+                        await fs.writeWholeFile(`${schemaBasePath}/user/rime.lua`, luaContent);
                     }
                 }
                 // TODO: add GUI for switch key config
-                await fs.writeWholeFile("/root/build/default.yaml", new TextEncoder().encode(stringify(
+                await fs.writeWholeFile(`${schemaBasePath}/build/default.yaml`, new TextEncoder().encode(stringify(
                     { ascii_composer: { good_old_caps_lock: true, switch_key: { Caps_Lock: "clear", Shift_L: "commit_code", Shift_R: "commit_code" } } }
                 )));
                 console.log("new RimeEngine()");
                 const engine = new RimeEngine();
-                await engine.initialize(this.printErr.bind(this), fs);
+                await engine.initialize(this.printErr.bind(this), fs, schemaBasePath);
                 if (maintenance) {
                     await engine.rebuildPrism(this.activeSettings.schema, config);
                 }

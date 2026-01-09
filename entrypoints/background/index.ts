@@ -12,12 +12,14 @@ export default defineBackground({
         schemaList: parse(await (await fetch("/builtin/schema-list.yaml")).text())
       });
       if (!self.controller.engine && !self.controller.engineLoading) {
+        const schema = kDefaultSettings.schema;
+        const schemaBasePath = `/root/${schema}`;
         const fileList = ["aurora_pinyin.prism.bin", "aurora_pinyin.reverse.bin", "aurora_pinyin.table.bin", "aurora_pinyin.schema.yaml"];
         const fs = await getFs();
         for (const f of fileList) {
           const resp = await fetch(`/builtin/${f}`);
           const buf = await resp.arrayBuffer();
-          await fs.writeWholeFile(`/root/build/${f}`, new Uint8Array(buf));
+          await fs.writeWholeFile(`${schemaBasePath}/build/${f}`, new Uint8Array(buf));
         }
         await self.controller.loadRime(true);
       }

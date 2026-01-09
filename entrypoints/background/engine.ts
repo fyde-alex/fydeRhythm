@@ -134,7 +134,7 @@ export class RimeEngine {
         this.initialized = false;
     }
 
-    async initialize(printErr: (string) => void, fs: FastIndexedDbFsController) {
+    async initialize(printErr: (string) => void, fs: FastIndexedDbFsController, mountPath: string) {
         await this.mutex.runExclusive(async () => {
             if (!this.initialized) {
                 this.wasmObject = await CreateRimeWasm({
@@ -145,7 +145,7 @@ export class RimeEngine {
                     idb: { openDB, deleteDB },
                     printErr: printErr,
                 })
-                await this.wasmObject.rimeSetup();
+                await this.wasmObject.rimeSetup(mountPath);
                 this.initialized = true;
             }
         })

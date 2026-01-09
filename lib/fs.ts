@@ -381,15 +381,28 @@ export class FastIndexedDbFsController {
     }
 
     async createDirectory(path: string): Promise<void> {
-        let newEntry: Entry = {
-            isDirectory: true,
-            mode: 0o777,
-            mtime: 0,
-            blobs: [],
-            fullPath: path,
-            parent: null
-        };
-        await this.writeEntry(newEntry);
+        // Create parent directories recursively if they don't exist
+        const parentPath = getParentPath(path);
+        if (parentPath !== "/" && parentPath !== path) {
+            const parentExists = await this.readEntryRaw(parentPath);
+            if (!parentExists) {
+                await this.createDirectory(parentPath);
+            }
+        }
+
+        // Create this directory if it doesn't exist
+        const exists = await this.readEntryRaw(path);
+        if (!exists) {
+            let newEntry: Entry = {
+                isDirectory: true,
+                mode: 0o777,
+                mtime: 0,
+                blobs: [],
+                fullPath: path,
+                parent: null
+            };
+            await this.writeEntry(newEntry);
+        }
     }
 
     async getDirectoryEntriesCount(path: string): Promise<number> {
