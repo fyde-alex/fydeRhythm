@@ -347,6 +347,15 @@ export class FastIndexedDbFsController {
     }
 
     async writeWholeFile(path: string, buffer: Uint8Array): Promise<void> {
+        // Ensure parent directories exist
+        const parentPath = getParentPath(path);
+        if (parentPath !== "/" && parentPath !== path) {
+            const parentExists = await this.readEntryRaw(parentPath);
+            if (!parentExists) {
+                await this.createDirectory(parentPath);
+            }
+        }
+
         let curEntry = await this.readEntry(path);
         if (!curEntry) {
             curEntry = {
