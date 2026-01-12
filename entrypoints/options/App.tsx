@@ -242,7 +242,7 @@ function OptionsPage() {
         loadSchemaList();
     }
 
-    async function removeSelfDefinedSchema(id: string) {
+    async function removeSchema(id: string) {
         try {
             // Delete the schema directory and all its contents
             const fs = await getFs();
@@ -252,13 +252,26 @@ function OptionsPage() {
             // Run garbage collection to remove unused blobs
             await fs.collectGarbage();
 
-            // Remove from self-defined schema list
+            // Remove from self-defined schema list if it exists there
             const selfDefinedSchema = await getSelfDefinedSchemaList();
-            let result = selfDefinedSchema.filter(el => (el.id != id));
-            chrome.storage.local.set({ "selfDefinedSchema": result });
+            const wasSelfDefined = selfDefinedSchema.some(el => el.id === id);
+            if (wasSelfDefined) {
+                let result = selfDefinedSchema.filter(el => (el.id != id));
+                chrome.storage.local.set({ "selfDefinedSchema": result });
+            }
 
-            // Reload both schema list and local schema list
-            await loadLocalSchemaList();
+            // If the removed schema is currently selected, switch to another schema
+            if (imeSettings.schema === id) {
+                const updatedList = await loadLocalSchemaList();
+                if (updatedList.length > 0) {
+                    // Switch to the first available schema
+                    changeSettings({ schema: updatedList[0] });
+                }
+            } else {
+                // Just reload the lists
+                await loadLocalSchemaList();
+            }
+
             await loadSchemaList();
         } catch (ex) {
             console.error("Error removing schema:", ex);
@@ -837,12 +850,13 @@ return {}
                                                         {$$("update_schema")}
                                                     </Link>
                                                 }
-                                                {schema.user ?
+                                                {localSchemaList.includes(schema.id) &&
                                                     <Link component="button" underline="hover"
-                                                        onClick={() => removeSelfDefinedSchema(schema.id)}
-                                                        style={{ marginLeft: "8px" }}>
+                                                        onClick={() => removeSchema(schema.id)}
+                                                        style={{ marginLeft: "8px" }}
+                                                        disabled={downloadSchemaId != null}>
                                                         {$$("remove_schema")}
-                                                    </Link> : <></>
+                                                    </Link>
                                                 }
                                             </>}
                                             secondary={<>
