@@ -159,7 +159,7 @@ export class InputController extends EventEmitter {
             if (!schemaConfig.speller) {
                 schemaConfig.speller = {};
             }
-            if (!schemaConfig.speller.algebra) {
+            if (!Array.isArray(schemaConfig.speller.algebra)) {
                 schemaConfig.speller.algebra = [];
             }
             for (const a of settings.algebraList) {
